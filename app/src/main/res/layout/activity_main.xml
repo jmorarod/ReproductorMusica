@@ -28,55 +28,84 @@
 
             android:layout_above="@+id/imgVolume"
             android:layout_marginBottom="9dp"
-            android:layout_marginEnd="16dp"
-            android:layout_toStartOf="@+id/imageView2"
+            android:layout_marginStart="14dp"
+            android:layout_toEndOf="@+id/textView2"
             android:onClick="playButtonClicked"
             app:srcCompat="@drawable/playbutton" />
 
         <ImageView
-            android:id="@+id/imageView2"
+            android:id="@+id/btnNextSong"
             android:layout_width="40dp"
             android:layout_height="40dp"
 
+            android:layout_alignStart="@+id/songsListView"
             android:layout_alignTop="@+id/btnPlay"
-            android:layout_marginEnd="9dp"
-            android:layout_toStartOf="@+id/volumeSeekBar"
+            android:clickable="true"
+            android:onClick="onNextSongClicked"
             app:srcCompat="@drawable/nextsongbutton" />
 
         <ImageView
-            android:id="@+id/imageView3"
+            android:id="@+id/btnPrev"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_alignEnd="@+id/textView2"
             android:layout_alignTop="@+id/btnPlay"
-            android:layout_marginEnd="28dp"
-            android:layout_toStartOf="@+id/btnPlay"
+            android:layout_marginEnd="15dp"
+            android:onClick="onPrevSongClicked"
             app:srcCompat="@drawable/prvsongbutton" />
 
         <SeekBar
             android:id="@+id/durationSeekBar"
-            android:layout_width="300dp"
+            android:layout_width="275dp"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
-            android:layout_marginBottom="28dp"
-            android:layout_marginStart="16dp" />
+            android:layout_marginBottom="23dp"
+            android:layout_marginStart="14dp" />
 
         <ImageView
             android:id="@+id/imgVolume"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_alignBottom="@+id/durationSeekBar"
-            android:layout_marginStart="16dp"
             android:layout_toEndOf="@+id/durationSeekBar"
             app:srcCompat="@drawable/medvolumebutton" />
 
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignStart="@+id/songsListView"
+            android:layout_marginTop="9dp"
+            android:text="Canciones"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/textView"
+            android:layout_alignStart="@+id/durationSeekBar"
+            android:text="Reproduciendo:" />
+
+        <TextView
+            android:id="@+id/txtCancion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/textView2"
+            android:layout_below="@+id/textView2"
+            android:layout_marginTop="11dp" />
+
         <SeekBar
             android:id="@+id/volumeSeekBar"
-            android:layout_width="175dp"
+            android:layout_width="125dp"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/imageView2"
-            android:layout_alignStart="@+id/songsListView"
-            android:layout_marginStart="40dp"
+            android:layout_above="@+id/btnNextSong"
+            android:layout_alignParentEnd="true"
+            android:max="100"
+            android:min="0"
+            android:progress="50"
             android:rotation="270" />
 
     </RelativeLayout>
