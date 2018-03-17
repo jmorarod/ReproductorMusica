@@ -2,6 +2,7 @@ package cr.ac.jmoraroditcr.reproductormusica;
 
 import android.content.res.Resources;
 import android.media.MediaPlayer;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +14,6 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,13 +21,20 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private boolean playing = false;
     private MediaPlayer mediaPlayer;
-    private SeekBar seekBar;
+    private SeekBar volumeSeekBar;
+    private SeekBar durationSeekBar;
     private int songNumber = 20;
     private float volume = 0.5f;
     private String[] songs = new String[songNumber];
+    private String[] songLyrics = new String[songNumber];
     private final List<Integer> resourceIdList = new ArrayList<Integer>();
+    private final List<Integer> stringsIdList = new ArrayList<Integer>();
     private int currentSong = 0;
     private String currentSongName = "";
+    private CountDownTimer countDownTimer;
+    private int songProgress = 0;
+    private TextView lyrics;
+    private boolean textAnimation = false;
 
 
     public void onNextSongClicked(View view){
@@ -42,10 +48,15 @@ public class MainActivity extends AppCompatActivity {
         if(!playing){
             mediaPlayer.start();
             playing = true;
-
+            setCountDownTimer();
             button.setImageResource(R.drawable.pausebutton);
+            if(textAnimation == false){
+                lyrics.animate().translationYBy(-1000f).setDuration((mediaPlayer.getDuration()/2));
+                textAnimation = true;
+            }
         }else{
             playing = false;
+            countDownTimer.cancel();
             mediaPlayer.pause();
             button.setImageResource(R.drawable.playbutton);
         }
@@ -56,27 +67,29 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         loadSongs();
+        loadLyrics();
         fixSongsName();
+        lyrics = findViewById(R.id.txtLyrics);
         ArrayAdapter adapter = new ArrayAdapter<String>(this,R.layout.support_simple_spinner_dropdown_item,songs);
         for(int i = 0 ; i<songs.length; i++){
             Log.i("songs","song"+songs[i]);
         }
         ListView listView = findViewById(R.id.songsListView);
         listView.setAdapter(adapter);
-        seekBar = findViewById(R.id.volumeSeekBar);
+        volumeSeekBar = findViewById(R.id.volumeSeekBar);
+        durationSeekBar = findViewById(R.id.durationSeekBar);/*
         mediaPlayer = MediaPlayer.create(this, resourceIdList.get(0));
         setVolume();
         TextView textView = findViewById(R.id.txtCancion);
+        textView.setSelected(true);
         setCurrentSongName();
         setSongName();
-
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            public void onCompletion(MediaPlayer mp) {
-                nextSong();
-            }
-        });
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        setCompletionListener();
+        durationSeekBar.setMax(mediaPlayer.getDuration());
+        durationSeekBar.setProgress(0);
+        setCountDownTimer();*/
+        changeSong();
+        volumeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
                 ImageView imageView = findViewById(R.id.imgVolume);
@@ -84,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 if(progress == 0){
                     imageView.setImageResource(R.drawable.novolumebutton);
                 }else{
-                    if(progress == 100)
+                    if(progress >= 80)
                         imageView.setImageResource(R.drawable.volumebutton);
                     else
                         imageView.setImageResource(R.drawable.medvolumebutton);
@@ -106,6 +119,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+        setSeekBarListener();
+
 
         ListView songsListView = findViewById(R.id.songsListView);
         songsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -115,6 +130,15 @@ public class MainActivity extends AppCompatActivity {
                 changeSong();
             }
         });
+    }
+    public void setCompletionListener(){
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+
+                nextSong();
+            }
+        });
+
     }
     public void nextSong(){
         currentSong += 1;
@@ -131,12 +155,67 @@ public class MainActivity extends AppCompatActivity {
     public void changeSong(){
         setCurrentSongName();
         setSongName();
-        mediaPlayer.stop();
+        if(mediaPlayer != null)
+            mediaPlayer.stop();
+        if(countDownTimer != null)
+            countDownTimer.cancel();
+        mediaPlayer = null;
         mediaPlayer = MediaPlayer.create(getApplicationContext(), resourceIdList.get(currentSong));
+        durationSeekBar.setMax(mediaPlayer.getDuration());
+        durationSeekBar.setProgress(0);
+        lyrics.setText(songLyrics[currentSong]);
+        lyrics.setTranslationY(700f);
+        setSeekBarListener();
         setVolume();
-        if(playing)
+        setCompletionListener();
+        setCountDownTimer();
+        if(playing) {
             mediaPlayer.start();
-        //resetSongSeekBar
+            lyrics.animate().translationYBy(-1000f).setDuration((mediaPlayer.getDuration()/2));
+        }
+
+    }
+    public void setSeekBarListener(){
+        durationSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean user) {
+                if(user) {
+                   int songProgress = mediaPlayer.getCurrentPosition();
+                   mediaPlayer.seekTo(progress);
+                }
+
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+
+        });
+    }
+    public void setCountDownTimer(){
+       if(countDownTimer != null)
+            countDownTimer.cancel();
+        countDownTimer = new CountDownTimer(mediaPlayer.getDuration(), 1000) {
+
+            @Override
+            public void onTick(long l) {
+                if(playing)
+                    durationSeekBar.setProgress(durationSeekBar.getProgress() + 1000);
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        }.start();
+
     }
     public void setVolume(){
         mediaPlayer.setVolume(volume,volume);
@@ -175,7 +254,11 @@ public class MainActivity extends AppCompatActivity {
             resourceName.replace("cr.ac.jmoraroditcr.reproductormusica:raw/"," ");
             songs[i] = resourceName;
         }
-    }/*
+    }
+    public void loadLyrics(){
+        songLyrics = getResources().getStringArray(R.array.songs);
+    }
+    /*
     public void fixSongsName(){
         for (int i = 0; i < resourceIdList.size(); i++) {
             if(songs[i] != ""){
